@@ -3,7 +3,7 @@ require('winston-daily-rotate-file');
 const fs = require('fs');
 const path = require('path');
 
-const logDir = path.join(__dirname, './../logs');
+const logDir = path.join(__dirname, './../../logs');
 
 // Create the log directory if it does not exist
 if (!fs.existsSync(logDir)) {
@@ -56,7 +56,7 @@ const log = (type, message) => {
   } else {
     logger.log(type, JSON.stringify(message));
   }
-}; 
+};
 
 module.exports = log;
 module.exports.logger = logger;
