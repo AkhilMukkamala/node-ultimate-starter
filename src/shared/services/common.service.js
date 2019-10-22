@@ -12,7 +12,7 @@ let formatResponse = (success, json) => {
         // Error Obj
         let error = String(json.error);
         // Send mail to alert the admin!
-        sendMail({subject: `${process.env.APPNAME} Application Error`, text: `The Error Message is: ${message}`, html: `The error is: ${error}` });
+        sendMail({subject: `${process.env.APPNAME} Error in Application`, text: `The Error Message is: ${message}`, html: `The error is: ${error}` });
         return { success, message: message, error: error };
     } else {
         return { success, message: message, data: json.data };
