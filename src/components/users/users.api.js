@@ -8,6 +8,14 @@ const UsersService = require('./users.service');
 
 
 
+router.get('/test', async (req, res) => {
+    return res.status(200).json({
+        message: "application running"
+    })
+
+});
+
+
 router.get('/parse', async (req, res) => {
     return res.status(200).json({
         ip: req.clientIp,
