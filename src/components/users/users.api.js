@@ -28,7 +28,7 @@ router.get('/parse', async (req, res) => {
 router.get('/user', async (req, res) => {
     let { _id } = req.query;
     let result = await UsersService.retrieveUserById(_id);
-    return res.json(result);
+    return res.status(200).json(result);
 });
 
 router.get('/settings', async (req, res) => {
