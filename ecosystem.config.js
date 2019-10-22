@@ -2,9 +2,9 @@ module.exports = {
   apps : [{
     name: 'ultimate-starter',
     script: './src/app.js',
-    // instances: "max",
-    // exec_mode: "cluster",
-    // increment_var : 'PORT',
+    instances: "max",
+    exec_mode: "cluster",
+    increment_var : 'PORT',
     autorestart: true,
     max_memory_restart: '1G',
     ignore_watch: ["node_modules", "./src/logs"],
