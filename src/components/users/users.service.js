@@ -18,7 +18,7 @@ const retrieveUserById = async (_id) => {
     } catch (error) {
         log('error', `${error}`)
         return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+            message: msg["sorry-something-went-wrong"],
             error: error
         });
     }
