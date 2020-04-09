@@ -1,4 +1,10 @@
 module.exports = {
+
+    'PASSWORD_SALT_LENGTH': 15,
+    'JWT_SECRET': 'LooG(^Dus2@6JWTSeCr#T!@&',
+    'CHECK_CREDENTIALS': 'Check Credentials',
+
+    'URL_NOT_FOUND': 'URL not found',
     'user-registered': 'USER-ALREADY-REGISTERED',
     'user-registration-success': 'USER-REGISTRATION-SUCCESSFULL',
     'user-not-registered': 'USER-NOT-REGISTERED',

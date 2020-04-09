@@ -1,6 +1,6 @@
-const Users = require('./models/users.model');
-const UsersMeta = require('./models/usersMeta.model');
-const UsersSession = require('./models/usersSession.model');
+const Users = require('../models/Users');
+const UsersMeta = require('../models/UsersMeta');
+const UsersSession = require('../models/UsersSession');
 
 
 const createUser = async (user) => {

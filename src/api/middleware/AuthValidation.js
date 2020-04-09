@@ -1,11 +1,11 @@
-let jwt = require('jsonwebtoken');
-let msg = require('../config/msg.config');
+const jwt = require('jsonwebtoken');
+const Constants = require('../../constants');
 
 let verifyToken = (req, res, next) => {
     if (!req.headers.authorization) {
         return res.status(401).json({
             success: false,
-            message: msg["unauthorized-request"]
+            message: Constants["unauthorized-request"]
         })
     } else {
         let token = req.headers.authorization.split(' ')[1];
@@ -15,7 +15,7 @@ let verifyToken = (req, res, next) => {
                     let httpStatus = err ? 500 : 401;
                     return res.status(httpStatus).json({
                         success: false,
-                        message: err.message || msg["unauthorized-request"]
+                        message: err.message || Constants["unauthorized-request"]
                     })
                 } else {
                     req.user = result;
@@ -25,7 +25,7 @@ let verifyToken = (req, res, next) => {
         } else {
             return res.status(401).json({
                 success: false,
-                message: msg["unauthorized-request"]
+                message: Constants["unauthorized-request"]
             })
         }
     }

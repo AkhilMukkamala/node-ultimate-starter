@@ -1,29 +1,23 @@
-//  Library
-const argon2 = require("argon2");
-const {
-    randomBytes,
-    createHash
-} = require("crypto");
-const jwt = require("jsonwebtoken");
-const Ajv = require("ajv");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { randomBytes, createHash } = require('crypto');
+const Ajv = require('ajv');
 const ajv = new Ajv({
     $data: true
 });
-const speakeasy = require("speakeasy");
-const qrCode = require("qrcode");
+
+const speakeasy = require('speakeasy');
+const qrCode = require('qrcode');
 
 //  Custom Files
+const Constants = require('../constants');
+const MailerService = require('./Mailer');
+const Utils = require('./Utils');
 
-const log = require("../../shared/services/logger.service");
-const msg = require("../../config/msg.config");
-const CommonService = require("../../shared/services/common.service");
-const MailerService = require("../../shared/services/Mailer.service");
-
-
-const usersDAL = require('./../users/users.dal');
+const usersDAL = require('../dal/Users');
 
 // Email Templates
-const emailTemplates = require('../../emails/templates');
+const emailTemplates = require('../emailTemplates/Templates');
 
 // Services
 
@@ -35,8 +29,8 @@ let signUp = async (name, email, password) => {
             password
         });
         if (!valid) {
-            return CommonService.formatResponse(false, {
-                message: msg["required-fields-missing"],
+            return Utils.formatResponse(false, {
+                message: Constants['required-fields-missing'],
                 error: JSON.stringify(ajv.errors[0])
             });
         } else {
@@ -44,9 +38,8 @@ let signUp = async (name, email, password) => {
             const isUserRegistered = await usersDAL.getUserByEmail(email);
 
             if (isUserRegistered) {
-                return CommonService.formatResponse(false, {
-                    message: msg["user-registered"],
-                    error: null
+                return Utils.formatResponse(false, {
+                    message: Constants['user-registered']
                 });
             } else {
                 const hashedPassword = await generatePasswordHash(password);
@@ -59,20 +52,19 @@ let signUp = async (name, email, password) => {
                 });
 
                 // Send Welcome Email
-                commonEmailTemplate(email, name, email, `Welcome to ${process.env.APPNAME}`, msg["welcome-email"]);
+                commonEmailTemplate(email, name, email, `Welcome to ${process.env.APPNAME}`, Constants['welcome-email']);
 
                 //  Send Verification Email
                 await sendVerificationEmail(user._id);
 
-                return CommonService.formatResponse(true, {
-                    message: msg["user-registration-success"]
+                return Utils.formatResponse(true, {
+                    message: Constants['user-registration-success']
                 });
             }
         }
     } catch (error) {
-        log("error", `${error}`);
-        return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+        return Utils.formatResponse(false, {
+            message: Constants['something-went-wrong'],
             error: error
         });
     }
@@ -87,8 +79,8 @@ let signIn = async (email, password, ip, address, useragent) => {
         });
 
         if (!valid) {
-            return CommonService.formatResponse(false, {
-                message: msg["required-fields-missing"],
+            return Utils.formatResponse(false, {
+                message: Constants['required-fields-missing'],
                 error: JSON.stringify(ajv.errors[0])
             });
         } else {
@@ -100,9 +92,8 @@ let signIn = async (email, password, ip, address, useragent) => {
             }).exec();
 
             if (!isUserRegistered) {
-                return CommonService.formatResponse(false, {
-                    message: msg["user-not-registered"],
-                    error: null
+                return Utils.formatResponse(false, {
+                    message: Constants['user-not-registered']
                 });
             } else {
                 const userPassword = isUserRegistered.password;
@@ -114,27 +105,26 @@ let signIn = async (email, password, ip, address, useragent) => {
                 );
 
                 if (!isPasswordCorrect) {
-                    return CommonService.formatResponse(false, {
-                        message: msg["incorrect-password"],
-                        error: null
+                    return Utils.formatResponse(false, {
+                        message: Constants['incorrect-password']
                     });
                 } else {
                     // Check if 2FA Enabled!
                     const is2FAEnabled = await usersDAL.getUserMetaByUserId(userId)
 
                     if (is2FAEnabled && is2FAEnabled.security.twoFactor.gAuth.enabled) {
-                        return CommonService.formatResponse(true, {
-                            message: msg["twofactor-enabled"]
+                        return Utils.formatResponse(true, {
+                            message: Constants['twofactor-enabled']
                         });
                     } else {
                         // Generate JWT
-                        // Frontend should send "_id" everytime via an API Call, To get user details. (Security Measure!)
+                        // Frontend should send '_id' everytime via an API Call, To get user details. (Security Measure!)
                         const token = generateJWT({
                             user: userId
                         });
                         await saveUserSession(userId, ip, address, useragent);
-                        return CommonService.formatResponse(true, {
-                            message: msg["twofactor-disabled"],
+                        return Utils.formatResponse(true, {
+                            message: Constants['twofactor-disabled'],
                             data: {
                                 token
                             }
@@ -144,9 +134,8 @@ let signIn = async (email, password, ip, address, useragent) => {
             }
         }
     } catch (error) {
-        log("error", `${error}`);
-        return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+        return Utils.formatResponse(false, {
+            message: Constants['something-went-wrong'],
             error: error
         });
     }
@@ -165,15 +154,15 @@ let saveUserSession = async (userId, ip, address, useragent) => {
 
 let generateJWT = user => {
     return jwt.sign(user, process.env.JWT_SECRET, {
-        expiresIn: "3h"
+        expiresIn: '3h'
     });
 };
 
 let getQrGAuth = async userId => {
     try {
         if (!userId) {
-            return CommonService.formatResponse(false, {
-                message: msg["required-fields-missing"],
+            return Utils.formatResponse(false, {
+                message: Constants['required-fields-missing'],
                 error: null
             });
         } else {
@@ -183,21 +172,19 @@ let getQrGAuth = async userId => {
             if (gAuthenticator) {
                 const qr = await qrCode.toDataURL(gAuthenticator.otpauth_url);
                 const response = { qr };
-                return CommonService.formatResponse(true, {
-                    message: msg["qr-retrieved"],
+                return Utils.formatResponse(true, {
+                    message: Constants['qr-retrieved'],
                     data: response
                 });
             } else {
-                return CommonService.formatResponse(false, {
-                    message: msg["2fa-disabled"],
-                    error: null
+                return Utils.formatResponse(false, {
+                    message: Constants['2fa-disabled']
                 });
             }
         }
     } catch (error) {
-        log("error", `${error}`);
-        return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+        return Utils.formatResponse(false, {
+            message: Constants['something-went-wrong'],
             error: error
         });
     }
@@ -206,24 +193,23 @@ let getQrGAuth = async userId => {
 let setupGAuth = async _id => {
     try {
         if (!_id) {
-            return CommonService.formatResponse(false, {
-                message: msg["required-fields-missing"],
+            return Utils.formatResponse(false, {
+                message: Constants['required-fields-missing'],
                 error: null
             });
         } else {
             const isUser = await usersDAL.getUserById(_id)
             if (!isUser) {
-                return CommonService.formatResponse(false, {
-                    message: msg["user-not-found"],
-                    error: null
+                return Utils.formatResponse(false, {
+                    message: Constants['user-not-found']
                 });
             } else {
                 const secret = speakeasy.generateSecret({
                     length: 30
                 });
                 const updateGAuthData = await usersDAL.updateUsersMeta(_id, {
-                    "security.twoFactor.gAuth.data": secret,
-                    "security.twoFactor.gAuth.enabled": true
+                    'security.twoFactor.gAuth.data': secret,
+                    'security.twoFactor.gAuth.enabled': true
                 });
 
                 const qr = await qrCode.toDataURL(secret.otpauth_url);
@@ -231,16 +217,15 @@ let setupGAuth = async _id => {
                     qr: qr,
                     base32: secret.base32
                 };
-                return CommonService.formatResponse(true, {
-                    message: msg["qr-generated"],
+                return Utils.formatResponse(true, {
+                    message: Constants['qr-generated'],
                     data: response
                 });
             }
         }
     } catch (error) {
-        log("error", `${error}`);
-        return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+        return Utils.formatResponse(false, {
+            message: Constants['something-went-wrong'],
             error: error
         });
     }
@@ -253,39 +238,37 @@ let verifyGAuth = async (userId, token, ip, address, useragent) => {
         if (gAuthData && gAuthData.security.twoFactor.gAuth.enabled) {
             const isOTPCorrect = speakeasy.totp.verify({
                 secret: gAuthData.security.twoFactor.gAuth.data.base32,
-                encoding: "base32",
+                encoding: 'base32',
                 token: token,
                 window: 3
             });
             if (isOTPCorrect) {
                 // Generate JWT
-                // Frontend should send "_id" everytime via an API Call, To get user details. (Security Measure!)
+                // Frontend should send '_id' everytime via an API Call, To get user details. (Security Measure!)
                 const token = generateJWT({
                     user: userId
                 });
                 await saveUserSession(userId, ip, address, useragent);
-                return CommonService.formatResponse(true, {
-                    message: msg["twofactor-success"],
+                return Utils.formatResponse(true, {
+                    message: Constants['twofactor-success'],
                     data: {
                         token
                     }
                 });
             } else {
-                return CommonService.formatResponse(false, {
-                    message: msg["twofactor-failed"],
-                    error: null
+                return Utils.formatResponse(false, {
+                    message: Constants['twofactor-failed']
                 });
             }
         } else {
-            return CommonService.formatResponse(false, {
-                message: msg["user-not-found-or-2fa-disabled"],
+            return Utils.formatResponse(false, {
+                message: Constants['user-not-found-or-2fa-disabled'],
                 error: null
             });
         }
     } catch (error) {
-        log("error", `${error}`);
-        return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+        return Utils.formatResponse(false, {
+            message: Constants['something-went-wrong'],
             error: error
         });
     }
@@ -301,8 +284,8 @@ let changePassword = async (_id, oldPassword, newPassword, confirmPassword) => {
         });
 
         if (!valid) {
-            return CommonService.formatResponse(false, {
-                message: msg["required-fields-missing"],
+            return Utils.formatResponse(false, {
+                message: Constants['required-fields-missing'],
                 error: JSON.stringify(ajv.errors[0])
             });
         } else {
@@ -311,9 +294,8 @@ let changePassword = async (_id, oldPassword, newPassword, confirmPassword) => {
             }).exec();
 
             if (!isUserExist) {
-                return CommonService.formatResponse(false, {
-                    message: msg["user-not-found"],
-                    error: null
+                return Utils.formatResponse(false, {
+                    message: Constants['user-not-found']
                 });
             } else {
                 const userPassword = isUserExist.password;
@@ -324,9 +306,8 @@ let changePassword = async (_id, oldPassword, newPassword, confirmPassword) => {
                 );
 
                 if (!isPasswordCorrect) {
-                    return CommonService.formatResponse(false, {
-                        message: msg["incorrect-old-password"],
-                        error: null
+                    return Utils.formatResponse(false, {
+                        message: Constants['incorrect-old-password']
                     });
                 } else {
                     const hashedPassword = await generatePasswordHash(newPassword);
@@ -342,16 +323,15 @@ let changePassword = async (_id, oldPassword, newPassword, confirmPassword) => {
                         new: true
                     }).exec();
 
-                    return CommonService.formatResponse(true, {
-                        message: msg["password-updated"]
+                    return Utils.formatResponse(true, {
+                        message: Constants['password-updated']
                     });
                 }
             }
         }
     } catch (error) {
-        log("error", `${error}`);
-        return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+        return Utils.formatResponse(false, {
+            message: Constants['something-went-wrong'],
             error: error
         });
     }
@@ -359,18 +339,8 @@ let changePassword = async (_id, oldPassword, newPassword, confirmPassword) => {
 
 let generatePasswordHash = async password => {
     //  Generate Salt
-    const salt = randomBytes(32).toString("hex");
-
-    // Argon Options
-    const options = {
-        timeCost: 4,
-        memoryCost: 1 << 14,
-        parallelism: 2,
-        hashLength: 64
-    };
-    // Generate Password Hash
-    const hashedPassword = await argon2.hash(password, salt, options);
-    return hashedPassword;
+    const salt = await bcrypt.genSalt(Constants.PASSWORD_SALT_LENGTH);
+    return await bcrypt.hash(password, salt)
 };
 
 let sendVerificationEmail = async (_id) => {
@@ -380,7 +350,7 @@ let sendVerificationEmail = async (_id) => {
 
         // Generate Email Verification Link
 
-        let randomToken = randomBytes(32).toString("hex");
+        let randomToken = randomBytes(32).toString('hex');
         randomToken = createHash('sha1').update(randomToken + _id).digest('hex');
 
         let updateEmailVerificationTkn = await usersDAL.updateUsersMeta(_id, {
@@ -391,14 +361,13 @@ let sendVerificationEmail = async (_id) => {
         let url = `${process.env.DOMAIN_V1}` + '/email-verification/' + `${randomToken}`;
 
         // Send Verification Email
-        commonEmailTemplate(user.email, user.name, user.email, `Welcome to ${process.env.APPNAME}`, msg["account-verification-email"], url, 'VERIFY EMAIL');
-        return CommonService.formatResponse(true, {
-            message: msg["email-sent"]
+        commonEmailTemplate(user.email, user.name, user.email, `Welcome to ${process.env.APPNAME}`, Constants['account-verification-email'], url, 'VERIFY EMAIL');
+        return Utils.formatResponse(true, {
+            message: Constants['email-sent']
         });
     } catch (error) {
-        log("error", `${error}`);
-        return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+        return Utils.formatResponse(false, {
+            message: Constants['something-went-wrong'],
             error: error
         });
     }
@@ -420,19 +389,18 @@ let checkEmailVerificationStatus = async (token) => {
             }, {
                 new: true
             }).exec();
-            return CommonService.formatResponse(true, {
-                message: msg["redirect-true"]
+            return Utils.formatResponse(true, {
+                message: Constants['redirect-true']
             });
         } else {
-            return CommonService.formatResponse(false, {
-                message: msg["redirect-false"],
+            return Utils.formatResponse(false, {
+                message: Constants['redirect-false'],
                 error: null
             });
         }
     } catch (error) {
-        log("error", `${error}`);
-        return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+        return Utils.formatResponse(false, {
+            message: Constants['something-went-wrong'],
             error: error
         });
     }
@@ -444,17 +412,15 @@ let sendPasswordResetEmail = async (email) => {
             email
         }).exec();
 
-        log('info', isUser);
-
         if (!isUser) {
-            return CommonService.formatResponse(false, {
-                message: msg["user-not-found"],
+            return Utils.formatResponse(false, {
+                message: Constants['user-not-found'],
                 error: null
             });
         } else {
             // ** Always Upsert this!
             // ! Don't remove the upsert.
-            let randomToken = randomBytes(32).toString("hex");
+            let randomToken = randomBytes(32).toString('hex');
             randomToken = createHash('sha1').update(randomToken + isUser._id).digest('hex');
 
             await UsersMeta.findOneAndUpdate({
@@ -470,15 +436,14 @@ let sendPasswordResetEmail = async (email) => {
             let url = `${process.env.DOMAIN_V1}` + '/reset-password/' + `${randomToken}`;
 
             // Send Password Reset Email
-            commonEmailTemplate(isUser.email, isUser.name, isUser.email, `Password reset request to ${process.env.APPNAME}`, msg["reset-password-email"], url, 'RESET PASSWORD');
-            return CommonService.formatResponse(true, {
-                message: msg["email-sent"]
+            commonEmailTemplate(isUser.email, isUser.name, isUser.email, `Password reset request to ${process.env.APPNAME}`, Constants['reset-password-email'], url, 'RESET PASSWORD');
+            return Utils.formatResponse(true, {
+                message: Constants['email-sent']
             });
         }
     } catch (error) {
-        log("error", `${error}`);
-        return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+        return Utils.formatResponse(false, {
+            message: Constants['something-went-wrong'],
             error: error
         });
     }
@@ -497,19 +462,18 @@ let checkPasswordResetStatus = async (token) => {
 
         if (query) {
             // commonEmailTemplate()
-            return CommonService.formatResponse(true, {
-                message: msg["redirect-true"]
+            return Utils.formatResponse(true, {
+                message: Constants['redirect-true']
             });
         } else {
-            return CommonService.formatResponse(false, {
-                message: msg["redirect-false"],
+            return Utils.formatResponse(false, {
+                message: Constants['redirect-false'],
                 error: null
             });
         }
     } catch (error) {
-        log("error", `${error}`);
-        return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+        return Utils.formatResponse(false, {
+            message: Constants['something-went-wrong'],
             error: error
         });
     }
@@ -524,17 +488,16 @@ let resetPassword = async (_id, newPassword, confirmPassword) => {
         });
 
         if (!valid) {
-            return CommonService.formatResponse(false, {
-                message: msg["required-fields-missing"],
+            return Utils.formatResponse(false, {
+                message: Constants['required-fields-missing'],
                 error: JSON.stringify(ajv.errors[0])
             });
         } else {
             const isUserExist = await Users.findById(_id).exec();
 
             if (!isUserExist) {
-                return CommonService.formatResponse(false, {
-                    message: msg["user-not-found"],
-                    error: null
+                return Utils.formatResponse(false, {
+                    message: Constants['user-not-found']
                 });
             } else {
                 const hashedPassword = await generatePasswordHash(newPassword);
@@ -552,17 +515,16 @@ let resetPassword = async (_id, newPassword, confirmPassword) => {
                     new: true
                 }).exec();
 
-                commonEmailTemplate(user.email, user.name, user.email, `Password Changed`, msg["password-updated"]);
+                commonEmailTemplate(user.email, user.name, user.email, `Password Changed`, Constants['password-updated']);
 
-                return CommonService.formatResponse(true, {
-                    message: msg["password-updated"]
+                return Utils.formatResponse(true, {
+                    message: Constants['password-updated']
                 });
             }
         }
     } catch (error) {
-        log("error", `${error}`);
-        return CommonService.formatResponse(false, {
-            message: msg["something-went-wrong"],
+        return Utils.formatResponse(false, {
+            message: Constants['something-went-wrong'],
             error: error
         });
     }
@@ -601,12 +563,12 @@ module.exports.saveUserSession = saveUserSession;
 // Validations
 
 let checkUserSchema = {
-    type: "object",
-    required: ["email"],
+    type: 'object',
+    required: ['email'],
     properties: {
         email: {
-            type: "string",
-            format: "email",
+            type: 'string',
+            format: 'email',
             maxLength: 256
         }
     },
@@ -614,20 +576,20 @@ let checkUserSchema = {
 };
 
 let signUpSchema = {
-    type: "object",
-    required: ["name", "email", "password"],
+    type: 'object',
+    required: ['name', 'email', 'password'],
     properties: {
         name: {
-            type: "string",
+            type: 'string',
             minLength: 6
         },
         email: {
-            type: "string",
-            format: "email",
+            type: 'string',
+            format: 'email',
             maxLength: 256
         },
         password: {
-            type: "string",
+            type: 'string',
             minLength: 6
         }
     },
@@ -635,16 +597,16 @@ let signUpSchema = {
 };
 
 let signInSchema = {
-    type: "object",
-    required: ["email", "password"],
+    type: 'object',
+    required: ['email', 'password'],
     properties: {
         email: {
-            type: "string",
-            format: "email",
+            type: 'string',
+            format: 'email',
             maxLength: 256
         },
         password: {
-            type: "string",
+            type: 'string',
             minLength: 6
         }
     },
@@ -652,23 +614,23 @@ let signInSchema = {
 };
 
 let changePasswordSchema = {
-    type: "object",
-    required: ["_id", "oldPassword", "newPassword", "confirmPassword"],
+    type: 'object',
+    required: ['_id', 'oldPassword', 'newPassword', 'confirmPassword'],
     properties: {
         _id: {
-            type: "string"
+            type: 'string'
         },
         oldPassword: {
-            type: "string",
+            type: 'string',
             minLength: 6
         },
         newPassword: {
-            type: "string",
+            type: 'string',
             minLength: 6
         },
         confirmPassword: {
             const: {
-                "$data": "1/newPassword"
+                '$data': '1/newPassword'
             }
         }
     },
@@ -676,19 +638,19 @@ let changePasswordSchema = {
 };
 
 let resetPasswordSchema = {
-    type: "object",
-    required: ["_id", "newPassword", "confirmPassword"],
+    type: 'object',
+    required: ['_id', 'newPassword', 'confirmPassword'],
     properties: {
         _id: {
-            type: "string"
+            type: 'string'
         },
         newPassword: {
-            type: "string",
+            type: 'string',
             minLength: 6
         },
         confirmPassword: {
             const: {
-                "$data": "1/newPassword"
+                '$data': '1/newPassword'
             }
         }
     },

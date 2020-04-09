@@ -2,9 +2,7 @@
 const router = require('express').Router();
 
 //  Internal Files!
-const log = require('./../../shared/services/logger.service');
-
-const AuthService = require('./authentication.service');
+const AuthService = require('../../services/Authentication');
 
 
 router.post('/signup', async (req, res) => {

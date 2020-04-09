@@ -3,7 +3,7 @@ const uid = require('shortid');
 uid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$@');
 
 // Files
-const sendMail = require('./mailer.service').sendMail;
+const sendMail = require('./Mailer').sendMail;
 
 let formatResponse = (success, json) => {
 

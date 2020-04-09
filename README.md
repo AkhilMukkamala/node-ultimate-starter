@@ -80,45 +80,6 @@ npm start
 
 ## File Structure
 
-```
-├───src/
-│   ├───components/
-│   │   ├───authentication/
-│   │   │   ├───authentication.api.js
-│   │   │   └───authentication.service.js
-│   │   └───users/
-│   │       ├───models/
-│   │       │   ├───users.model.js
-│   │       │   ├───usersCollab.models.js
-│   │       │   ├───usersMeta.model.js
-│   │       │   ├───usersReferral.model.js
-│   │       │   └───usersSession.model.js
-│   │       ├───users.api.js
-│   │       ├───users.dal.js
-│   │       └───users.service.js
-│   ├───config/
-│   │   └───msg.config.js
-│   ├───emails/
-│   │   └───templates.js
-│   ├───logs/
-│   │   └───NodeStarter-2019-08-28.log
-│   ├───middleware/
-│   │   └───index.js
-│   ├───shared/
-│   │   └───services/
-│   │       ├───common.service.js
-│   │       ├───logger.service.js
-│   │       └───mailer.service.js
-│   └───app.js
-├───.editorconfig
-├───.env
-├───.env.example
-├───LICENSE
-├───README.md
-├───ecosystem.config.js
-└───package.json
-```
-
 
 ## Coding Standards
 

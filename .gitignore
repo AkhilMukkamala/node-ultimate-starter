@@ -93,3 +93,5 @@ typings/
 .DS_Store
 .comments
 .editorconfig
+
+package-lock.json

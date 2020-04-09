@@ -3,7 +3,6 @@ const nodemailer = require('nodemailer');
 
 
 // Internal
-const log = require('./logger.service');
 
 
 const transporter = nodemailer.createTransport({
@@ -27,7 +26,8 @@ let sendMail = (args) => {
     };
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            return log('error', error);
+            return;
+            // return log('error', error);
         } else {
             return true;
         }
@@ -45,10 +45,8 @@ let customMail = (args) => {
     };
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            log('error', error);
-            return log('error', error);
+            // return log('error', error);
         } else {
-            log('info', info);
             return true;
         }
     });

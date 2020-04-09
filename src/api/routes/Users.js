@@ -1,18 +1,13 @@
 const router = require('express').Router();
 
 // Internal Files
-const log = require("../../shared/services/logger.service");
 
-
-const UsersService = require('./users.service');
-
-
+const UsersService = require('../../services/Users');
 
 router.get('/test', async (req, res) => {
     return res.status(200).json({
         message: "application running"
-    })
-
+    });
 });
 
 
