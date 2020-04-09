@@ -2,15 +2,25 @@ const mongoose = require('mongoose');
 
 let UserSchema = new mongoose.Schema(
     {
+        uid: {
+            type: String,
+            unique: true
+        },
         email: {
             type: String,
             unique: true,
             trim: true
         },
-        name: {
+        fullName: {
             type: String,
             trim: true,
+            required: true,
             match: /[a-zA-Z]+/
+        },
+        companyName: {
+            type: String,
+            trim: true,
+            required: true
         },
         password: {
             type: String,
@@ -18,7 +28,8 @@ let UserSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            default: 'developer'
+            enum: ["SUPER-ADMIN", "ADMIN", "MEMBER"],
+            default: 'ADMIN'
         },
         isActive: {
             type: Boolean,
@@ -27,8 +38,7 @@ let UserSchema = new mongoose.Schema(
         },
         isPremium: {
             type: Boolean,
-            default: false,
-            required: false
+            default: false
         }
     },
     {

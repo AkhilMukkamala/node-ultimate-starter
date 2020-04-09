@@ -34,8 +34,6 @@ const getUserByEmail = async (email) => {
     }).exec();
 };
 
-// Users Meta
-
 const getUserMetaByUserId = async (userId) => {
     return await UsersMeta.findOne({
         userId
@@ -48,9 +46,6 @@ const getUserMetaByUserId = async (userId) => {
 const updateUsersMeta = async (userId, condition) => {
     return await UsersMeta.updateOne({ userId }, condition, { upsert: true, new: true }).exec();
 }
-
-
-// Sessions
 
 const createUserSession = async (info) => {
     return await UsersSession.create(info);
