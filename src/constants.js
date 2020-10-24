@@ -6,6 +6,7 @@ module.exports = {
 
     'URL_NOT_FOUND': 'URL not found',
     'INFO': 'info',
+    'APP_RUNNING': 'application running',
     'user-registered': 'USER-ALREADY-REGISTERED',
     'user-registration-success': 'USER-REGISTRATION-SUCCESSFULL',
     'user-not-registered': 'USER-NOT-REGISTERED',
