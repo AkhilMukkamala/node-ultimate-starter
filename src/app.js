@@ -194,5 +194,5 @@ app.use((req, res) => {
 
 
 server.listen(process.env.PORT, () => {
-    logger.log('info', `app is running at PORT: ${process.env.PORT}, ENVIRNOMENT: ${process.env.NODE_ENV}`)
+    logger.log(Constants.INFO, `app is running at PORT: ${process.env.PORT}, ENVIRNOMENT: ${process.env.NODE_ENV}`)
 });
