@@ -76,11 +76,7 @@ npm start
 		- Development
 		- Production
 		- Debug
-
-
-## File Structure
-
-
+		
 ## Coding Standards
 
 - NodeJS Coding best practises are followed from [NodeBestPractices](https://github.com/goldbergyoni/nodebestpractices) Repo.
