@@ -5,6 +5,7 @@ module.exports = {
     'CHECK_CREDENTIALS': 'Check Credentials',
 
     'URL_NOT_FOUND': 'URL not found',
+    'INFO': 'info',
     'user-registered': 'USER-ALREADY-REGISTERED',
     'user-registration-success': 'USER-REGISTRATION-SUCCESSFULL',
     'user-not-registered': 'USER-NOT-REGISTERED',
